@@ -28,6 +28,7 @@ from feedback.feedback_loop import FeedbackLoopEngine
 from llm.persona_engine import PersonaEngine
 from llm.guardrails import LLMGuardrails
 from telemetry.telemetry_tracker import TelemetryTracker
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(
     title="BusinessIntelligence.ai Engine API",
@@ -38,7 +39,10 @@ app = FastAPI(
 # Enable CORS for frontend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        "http://localhost:5173",
+        "https://paisaan-b2vdn2gpx-hrdkkmr.vercel.app/",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
