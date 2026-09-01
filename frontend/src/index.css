@@ -1,0 +1,69 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --bg-app: #f4f5f7;
+    --bg-surface: #ffffff;
+    --bg-surface-subtle: #f9fafb;
+    --bg-card: #ffffff;
+    --border-subtle: #e5e7eb;
+    --border-active: #d1d5db;
+    --text-primary: #111827;
+    --text-secondary: #4b5563;
+    --text-muted: #6b7280;
+    --text-dim: #9ca3af;
+    --accent-teal: #0f766e;
+    --accent-teal-subtle: #f0fdfa;
+    --status-success: #15803d;
+    --status-success-bg: #f0fdf4;
+    --status-warning: #b45309;
+    --status-warning-bg: #fffbeb;
+    --status-danger: #b91c1c;
+    --status-danger-bg: #fef2f2;
+  }
+
+  body {
+    background-color: var(--bg-app);
+    color: var(--text-primary);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+  }
+}
+
+/* Refined scrollbars */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
+/* Card & Surface utilities */
+.paisaan-card {
+  background-color: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.75rem;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
+}
+
+.paisaan-card-subtle {
+  background-color: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.75rem;
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}

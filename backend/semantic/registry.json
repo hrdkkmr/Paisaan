@@ -1,0 +1,193 @@
+{
+  "version": "1.0.0",
+  "organization": "Enterprise Retail & D2C Group",
+  "currency": "INR",
+  "currency_symbol": "₹",
+  "kpis": {
+    "revenue": {
+      "kpi_id": "revenue",
+      "name": "Gross Realized Revenue",
+      "short_name": "Revenue",
+      "definition": "Total realized gross sales revenue after applied item-level discounts.",
+      "formula": "SUM(revenue)",
+      "unit": "currency_cr",
+      "format": "₹{:,.2f} Cr",
+      "grain": "daily",
+      "dimensions": ["product_id", "category", "region", "channel"],
+      "baseline": "forecast_seasonal_ewma",
+      "materiality": {
+        "relative_change_pct": 5.0,
+        "absolute_impact_inr": 1000000,
+        "z_score_threshold": 2.0,
+        "persistence_days_min": 2
+      },
+      "drivers": ["volume", "price", "product_mix", "inventory_shortage", "marketing_spend", "regional_demand"],
+      "lineage": ["sales.revenue", "sales.unit_price", "sales.quantity", "sales.discount"],
+      "sources": ["sales_db"],
+      "refresh_cadence": "hourly",
+      "access_policy": ["cfo", "executive", "finance", "admin"],
+      "business_rules": [
+        "Exclude test and refunded transactions",
+        "Currency normalized to INR Crores for board reporting"
+      ]
+    },
+    "profit_margin": {
+      "kpi_id": "profit_margin",
+      "name": "Operating Profit Margin",
+      "short_name": "Profit Margin",
+      "definition": "Ratio of gross profit (revenue minus cost of goods sold) to total gross revenue.",
+      "formula": "(SUM(profit) / SUM(revenue)) * 100",
+      "unit": "percent",
+      "format": "{:.1f}%",
+      "grain": "daily",
+      "dimensions": ["product_id", "category", "region"],
+      "baseline": "rolling_30d_mean",
+      "materiality": {
+        "relative_change_pct": 3.0,
+        "absolute_impact_pts": 1.5,
+        "z_score_threshold": 1.8,
+        "persistence_days_min": 2
+      },
+      "drivers": ["cogs_inflation", "discount_depth", "product_mix", "fulfillment_cost"],
+      "lineage": ["sales.profit", "sales.cost", "sales.revenue"],
+      "sources": ["sales_db", "cost_ledger"],
+      "refresh_cadence": "hourly",
+      "access_policy": ["cfo", "executive", "finance", "admin"],
+      "business_rules": [
+        "Discounts over 40% require VP approval",
+        "COGS updated on daily weighted average"
+      ]
+    },
+    "order_volume": {
+      "kpi_id": "order_volume",
+      "name": "Total Order Volume",
+      "short_name": "Orders",
+      "definition": "Count of successfully processed and fulfilled customer orders.",
+      "formula": "COUNT(DISTINCT order_id)",
+      "unit": "integer",
+      "format": "{:,} orders",
+      "grain": "daily",
+      "dimensions": ["category", "region", "channel"],
+      "baseline": "seasonal_7d_baseline",
+      "materiality": {
+        "relative_change_pct": 5.0,
+        "absolute_impact_count": 500,
+        "z_score_threshold": 2.0,
+        "persistence_days_min": 2
+      },
+      "drivers": ["traffic", "conversion_rate", "marketing_spend", "regional_events"],
+      "lineage": ["sales.order_id"],
+      "sources": ["sales_db"],
+      "refresh_cadence": "hourly",
+      "access_policy": ["cfo", "operations_manager", "marketing_director", "executive", "admin"],
+      "business_rules": [
+        "Counts only non-cancelled confirmed orders"
+      ]
+    },
+    "conversion_rate": {
+      "kpi_id": "conversion_rate",
+      "name": "E-Commerce Conversion Rate",
+      "short_name": "Conversion Rate",
+      "definition": "Percentage of unique sessions/clicks that result in a completed checkout.",
+      "formula": "(COUNT(orders) / SUM(clicks)) * 100",
+      "unit": "percent",
+      "format": "{:.2f}%",
+      "grain": "daily",
+      "dimensions": ["channel", "region"],
+      "baseline": "rolling_14d_mean",
+      "materiality": {
+        "relative_change_pct": 4.0,
+        "absolute_impact_pts": 0.25,
+        "z_score_threshold": 1.8,
+        "persistence_days_min": 2
+      },
+      "drivers": ["competitor_pricing", "checkout_latency", "ad_targeting_relevance", "stockout_frequency"],
+      "lineage": ["marketing.clicks", "sales.order_id"],
+      "sources": ["marketing_db", "sales_db"],
+      "refresh_cadence": "daily",
+      "access_policy": ["marketing_director", "operations_manager", "cfo", "executive", "admin"],
+      "business_rules": [
+        "Requires 24h attribution lag window for reconciliation"
+      ]
+    },
+    "inventory_availability": {
+      "kpi_id": "inventory_availability",
+      "name": "On-Shelf Inventory Availability",
+      "short_name": "Inventory Availability",
+      "definition": "Percentage of SKU-location demand that can be fulfilled immediately from existing stock without backorder.",
+      "formula": "(SUM(available_units) / SUM(demand_units)) * 100",
+      "unit": "percent",
+      "format": "{:.1f}%",
+      "grain": "6-hourly",
+      "dimensions": ["product_id", "category", "region"],
+      "baseline": "sla_target_95",
+      "materiality": {
+        "relative_change_pct": 5.0,
+        "absolute_impact_pts": 5.0,
+        "z_score_threshold": 2.2,
+        "persistence_days_min": 1
+      },
+      "drivers": ["inbound_supplier_delay", "safety_stock_depletion", "demand_spike", "warehouse_processing_time"],
+      "lineage": ["inventory.available_units", "inventory.demand_units", "inventory.stockout_flag"],
+      "sources": ["inventory_db"],
+      "refresh_cadence": "6-hourly",
+      "access_policy": ["operations_manager", "cfo", "executive", "admin"],
+      "business_rules": [
+        "Calculated across top 200 revenue-generating SKUs every 6 hours",
+        "Target SLA is >= 95%"
+      ]
+    },
+    "cac": {
+      "kpi_id": "cac",
+      "name": "Customer Acquisition Cost",
+      "short_name": "CAC",
+      "definition": "Total ad spend divided by newly acquired distinct customers.",
+      "formula": "SUM(campaign_spend) / COUNT(DISTINCT new_customer_id)",
+      "unit": "currency_inr",
+      "format": "₹{:,.0f}",
+      "grain": "daily",
+      "dimensions": ["channel", "campaign_id"],
+      "baseline": "rolling_30d_mean",
+      "materiality": {
+        "relative_change_pct": 8.0,
+        "absolute_impact_inr": 150,
+        "z_score_threshold": 1.9,
+        "persistence_days_min": 3
+      },
+      "drivers": ["ad_auction_cpm", "ctr_decay", "creative_fatigue", "channel_mix"],
+      "lineage": ["marketing.campaign_spend", "sales.customer_id"],
+      "sources": ["marketing_db", "sales_db"],
+      "refresh_cadence": "daily",
+      "access_policy": ["marketing_director", "cfo", "executive", "admin"],
+      "business_rules": [
+        "First touch attribution model applied"
+      ]
+    },
+    "roas": {
+      "kpi_id": "roas",
+      "name": "Return on Ad Spend",
+      "short_name": "ROAS",
+      "definition": "Ratio of attributed revenue to marketing campaign spend.",
+      "formula": "SUM(attributed_revenue) / SUM(campaign_spend)",
+      "unit": "ratio",
+      "format": "{:.2f}x",
+      "grain": "daily",
+      "dimensions": ["channel", "campaign_id", "region"],
+      "baseline": "target_benchmark_3_5x",
+      "materiality": {
+        "relative_change_pct": 6.0,
+        "absolute_impact_pts": 0.3,
+        "z_score_threshold": 2.0,
+        "persistence_days_min": 2
+      },
+      "drivers": ["bid_strategy", "conversion_rate", "average_order_value", "attribution_window_accuracy"],
+      "lineage": ["marketing.attributed_revenue", "marketing.campaign_spend"],
+      "sources": ["marketing_db"],
+      "refresh_cadence": "daily",
+      "access_policy": ["marketing_director", "cfo", "executive", "admin"],
+      "business_rules": [
+        "Attribution window: 7-day click / 1-day view"
+      ]
+    }
+  }
+}
