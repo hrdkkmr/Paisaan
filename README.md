@@ -1,7 +1,8 @@
 # Paisaan
 ### Intelligent Decision-Control System for Business Operations
 *“Intelligence that turns business signals into decisions.”*
-#Live Demo: https://paisaan.vercel.app/#
+
+Live Demo: https://paisaan.vercel.app/
 
 ---
 
